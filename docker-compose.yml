@@ -1,0 +1,38 @@
+version: "3"
+
+services:
+
+  db:
+    image: postgres
+    restart: always
+    volumes:
+      - ./dbdata:/var/lib/postgresql/data
+    ports:
+      - 5432:5432
+
+  app:
+    restart: always
+    build: ./interview/
+    container_name: algo-interview-app
+    ports:
+      - "8000:8000"
+    environment:
+      - PYTHONUNBUFFERED=1
+    volumes:
+      - ./interview/:/src
+    command: gunicorn -w 2 -b :8000 --reload app.app:app
+    depends_on:
+      - db
+
+  nginx:
+    restart: always
+    build: ./nginx/
+    container_name: algo-interview-nginx
+    ports:
+      - "80:80"
+    depends_on:
+      - app
+
+volumes:
+  dbdata:
+    driver: local
