@@ -110,5 +110,4 @@ Response Data
 
 1. Implement the create user endpoint. Deal with the problem if the user already exists, and return the serialized response that uses the `to_json` method
 2. Change the city temperature to display as a user-readable format (ex. 46.5F instead of just 46.5)
-3. Figure out why the only 1 city is retrieved at a time, and fix this issue to allow it to return all the cities associated with a user
-4. The weather API is $1/API Call. Explain (don't code) why this is a problem and various options to solve it
+3. The weather API is $1/API Call. Explain (don't code) why this is a problem and various options to solve it

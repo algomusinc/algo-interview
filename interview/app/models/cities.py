@@ -126,14 +126,6 @@ class City(object):
 
         return response[0] > 0
 
-    def __str__(self):
-        return "<City: name={name}, temp={temp}, pressure={pressure}, humidity={humidity}".format(
-            name=self.name,
-            temp=self.temp,
-            pressure=self.pressure,
-            humidity=self.humidity
-        )
-
     def to_json(self):
         return {
             'name': self.name,

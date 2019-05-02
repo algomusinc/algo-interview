@@ -24,10 +24,6 @@ class User(object):
         """
         self.cursor.execute(sql)
 
-    def _update_user_model(self):
-        response = self.cursor.fetchone()
-        self.name = response[0]
-
     def _update_cities_model(self):
         sql = """
         SELECT DISTINCT
@@ -46,7 +42,7 @@ class User(object):
         }
 
         self.cursor.execute(sql, parameters)
-        response = self.cursor.fetchmany()
+        response = self.cursor.fetchall()
 
         cities = [
             City(
@@ -66,9 +62,7 @@ class User(object):
           name
         ) VALUES (
           %(name)s
-        )
-        RETURNING
-          name;
+        );
         """
 
         parameters = {
@@ -76,34 +70,14 @@ class User(object):
         }
 
         self.cursor.execute(sql, parameters)
-        self._update_user_model()
 
     def get(self):
-        sql = """
-        SELECT
-          name
-        FROM users
-        WHERE name=%(name)s
         """
-
-        parameters = {
-            'name': self.name
-        }
-
-        self.cursor.execute(sql, parameters)
-        self._update_user_model()
-
-        sql = """
-        SELECT *
-        FROM user_cities
-        WHERE user_name=%(user_name)s
+        We already have the name field set, so we just have to get the cities
         """
+        if not self.exists():
+            raise Exception("User does not exist")
 
-        parameters = {
-            'user_name': self.name
-        }
-
-        self.cursor.execute(sql, parameters)
         self._update_cities_model()
 
     def exists(self):
@@ -121,21 +95,6 @@ class User(object):
         response = self.cursor.fetchone()
 
         return response[0] > 0
-
-    def remove_city(self, city):
-        sql = """
-        DELETE FROM user_cities 
-        WHERE user_name=%(user_name)s
-          AND city_name=%(city_name)s
-        """
-
-        parameters = {
-            'user_name': self.name,
-            'city_name': city.name
-        }
-
-        self.cursor.execute(sql, parameters)
-        self._update_cities_model()
 
     def add_city(self, city):
         sql = """
@@ -158,11 +117,6 @@ class User(object):
 
         self.cursor.execute(sql, parameters)
         self._update_cities_model()
-
-    def __str__(self):
-        return "<User: name={name}".format(
-            name=self.name
-        )
 
     def to_json(self):
         return {

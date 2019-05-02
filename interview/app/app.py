@@ -17,20 +17,31 @@ User(connection=persistence.connection).bootstrap()
 @app.route("/users", methods=['POST'])
 def create_user():
     name = request.get_json()['name']
-    return {
+    return json.dumps({
         'name': name
-    }
+    })
 
 
 @app.route("/users/<user_name>", methods=['GET'])
 def get_user(user_name):
     user = User(connection=persistence.connection, name=user_name)
-    user.get()
-    user.close()
+    try:
+        user.get()
+    except Exception as exc:
+        response = app.response_class(
+            response=json.dumps({
+                'message': "User does not exist"
+            }),
+            status=400,
+            mimetype='application/json'
+        )
+        return response
+    finally:
+        user.close()
 
     response = app.response_class(
         response=json.dumps(user.to_json()),
-        status=201,
+        status=200,
         mimetype='application/json'
     )
     return response
@@ -43,15 +54,24 @@ def add_city_to_user(user_name):
     user.get()
     city = City(connection=persistence.connection, name=city_name)
     if city.exists():
-        print("exists")
         city.get()
     else:
-        print("new")
         city.create()
 
-    user.add_city(city=city)
-    user.close()
-    city.close()
+    try:
+        user.add_city(city=city)
+    except Exception as exc:
+        response = app.response_class(
+            response=json.dumps({
+                'message': "City already added to user"
+            }),
+            status=400,
+            mimetype='application/json'
+        )
+        return response
+    finally:
+        user.close()
+        city.close()
 
     response = app.response_class(
         response=json.dumps(user.to_json()),
@@ -60,21 +80,6 @@ def add_city_to_user(user_name):
     )
     return response
 
-
-@app.route("/users/<user_name>/cities/<city_name>", methods=['DELETE'])
-def remove_city_from_user(user_name, city_name):
-    user = User(connection=persistence.connection, name=user_name)
-    city = City(connection=persistence.connection, name=city_name)
-    user.remove_city(city=city)
-    user.close()
-    city.close()
-
-    response = app.response_class(
-        response=json.dumps(user.to_json()),
-        status=200,
-        mimetype='application/json'
-    )
-    return response
 
 if __name__ == '__main__':
     app.run_server(debug=True)
