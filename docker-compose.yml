@@ -30,7 +30,3 @@ services:
       - "80:80"
     depends_on:
       - app
-
-volumes:
-  dbdata:
-    driver: local
